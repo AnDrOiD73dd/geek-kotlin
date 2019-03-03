@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">GeekKotlin</string>
+    <string name="button_text">Button</string>
 </resources>
