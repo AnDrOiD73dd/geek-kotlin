@@ -1,4 +1,4 @@
-package ru.geekbrains.geekkotlin.ui
+package ru.geekbrains.geekkotlin.ui.main
 
 import ru.geekbrains.geekkotlin.data.entity.Note
 
