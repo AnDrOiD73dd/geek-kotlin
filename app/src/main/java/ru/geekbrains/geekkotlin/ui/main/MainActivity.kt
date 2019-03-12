@@ -1,4 +1,4 @@
-package ru.geekbrains.geekkotlin.ui
+package ru.geekbrains.geekkotlin.ui.main
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.geekbrains.geekkotlin.R
+import ru.geekbrains.geekkotlin.ui.note.NoteActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,15 +22,19 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         rv_notes.layoutManager = GridLayoutManager(this, 2)
-        adapter = NotesRVAdapter(viewModel.presenter)
+        adapter = NotesRVAdapter(viewModel.presenter) { NoteActivity.start(this, it) }
         rv_notes.adapter = adapter
 
-        viewModel.viewState().observe(this, Observer<MainViewState> { t ->
-            t?.let {
+        viewModel.viewState().observe(this, Observer<MainViewState> { state ->
+            state?.let {
                 viewModel.presenter.updateNotesList(it.notes)
                 adapter.notifyDataSetChanged()
             }
         })
+
+        fab.setOnClickListener {
+            NoteActivity.start(this)
+        }
     }
 
 }

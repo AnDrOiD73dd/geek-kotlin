@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">GeekKotlin</string>
     <string name="button_text">Button</string>
+    <string name="note_title_hint">Заголовок</string>
+    <string name="note_body_hint">Текст заметки</string>
+    <string name="new_note_title">Новая заметка</string>
 </resources>
