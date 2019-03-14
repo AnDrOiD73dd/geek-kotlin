@@ -9,8 +9,12 @@ import ru.geekbrains.geekkotlin.ui.base.BaseViewModel
 class MainViewModel(private val repository: NotesRepository = NotesRepository) :
         BaseViewModel<List<Note>?, MainViewState>() {
 
+    val presenter: NotesRVPresenterContract = NotesRVPresenter()
+        get() = field
+
     private val notesObserver = Observer<NoteResult> { result ->
         result ?: let { return@Observer }
+
         when (result) {
             is NoteResult.Success<*> -> {
                 viewStateLiveData.value = MainViewState(result.data as? List<Note>)
@@ -25,19 +29,16 @@ class MainViewModel(private val repository: NotesRepository = NotesRepository) :
 
     init {
         viewStateLiveData.value = MainViewState()
-        repositoryNotes.observeForever { notesObserver }
+        repositoryNotes.observeForever(notesObserver)
     }
 
-    val presenter: NotesRVPresenterContract = NotesRVPresenter()
-        get() = field
-
     override fun onCleared() {
-        repositoryNotes.removeObserver { notesObserver }
+        repositoryNotes.removeObserver(notesObserver)
     }
 
     inner class NotesRVPresenter : NotesRVPresenterContract {
 
-        private var notes = listOf<Note>()
+        private var notes: List<Note> = listOf()
 
         override fun getItemCount(): Int {
             return notes.size
