@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.item_note.view.*
 import ru.geekbrains.geekkotlin.R
-import ru.geekbrains.geekkotlin.data.NoteColorAdapter
+import ru.geekbrains.geekkotlin.common.getColorInt
 import ru.geekbrains.geekkotlin.data.entity.Note
 
 class NotesRVAdapter(
@@ -37,7 +37,7 @@ class NotesRVAdapter(
         }
 
         override fun setBackgroundColor(color: Note.Color) {
-            itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, NoteColorAdapter.getColor(color)))
+            itemView.setBackgroundColor(color.getColorInt(itemView.context))
         }
 
         override fun setOnClickListener(note: Note) {

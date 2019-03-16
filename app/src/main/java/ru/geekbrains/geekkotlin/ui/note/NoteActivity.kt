@@ -4,16 +4,15 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
 import android.text.Editable
 import android.text.TextWatcher
 import kotlinx.android.synthetic.main.activity_note.*
 import ru.geekbrains.geekkotlin.R
-import ru.geekbrains.geekkotlin.data.NoteColorAdapter
+import ru.geekbrains.geekkotlin.common.format
+import ru.geekbrains.geekkotlin.common.getColorInt
 import ru.geekbrains.geekkotlin.data.entity.Note
 import ru.geekbrains.geekkotlin.ui.base.BaseActivity
 import timber.log.Timber
-import java.text.SimpleDateFormat
 import java.util.*
 
 class NoteActivity : BaseActivity<Note?, NoteViewState>() {
@@ -74,7 +73,7 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
     override fun renderData(data: Note?) {
         this.note = data
         supportActionBar?.title = if (this.note != null) {
-            SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).format(note!!.lastChanged)
+            this.note!!.lastChanged.format(DATE_FORMAT)
         } else {
             getString(R.string.new_note_title)
         }
@@ -86,7 +85,7 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
         note?.let {
             et_title.setText(it.title)
             et_body.setText(it.text)
-            toolbar.setBackgroundColor(ContextCompat.getColor(this, NoteColorAdapter.getColor(it.color)))
+            toolbar.setBackgroundColor(it.color.getColorInt(this))
         }
     }
 
