@@ -82,10 +82,11 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
     }
 
     private fun initView() {
-        note?.let {
-            et_title.setText(it.title)
-            et_body.setText(it.text)
-            toolbar.setBackgroundColor(it.color.getColorInt(this@NoteActivity))
+        note?.run {
+            supportActionBar?.title = lastChanged.format(DATE_FORMAT)
+            et_title.setText(title)
+            et_body.setText(text)
+            toolbar.setBackgroundColor(color.getColorInt(this@NoteActivity))
         }
     }
 
