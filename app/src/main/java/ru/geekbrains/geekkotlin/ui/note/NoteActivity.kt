@@ -85,7 +85,7 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
         note?.let {
             et_title.setText(it.title)
             et_body.setText(it.text)
-            toolbar.setBackgroundColor(it.color.getColorInt(this))
+            toolbar.setBackgroundColor(it.color.getColorInt(this@NoteActivity))
         }
     }
 
