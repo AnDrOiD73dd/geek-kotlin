@@ -29,6 +29,6 @@ data class Note(
         BLUE,
         RED,
         VIOLET,
-        PINK
+        PINK;
     }
 }
