@@ -10,13 +10,14 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import com.firebase.ui.auth.AuthUI
 import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.alert
 import ru.geekbrains.geekkotlin.R
 import ru.geekbrains.geekkotlin.data.entity.Note
 import ru.geekbrains.geekkotlin.ui.base.BaseActivity
 import ru.geekbrains.geekkotlin.ui.note.NoteActivity
 import ru.geekbrains.geekkotlin.ui.splash.SplashActivity
 
-class MainActivity : BaseActivity<List<Note>?, MainViewState>(), LogoutDialog.LogoutListener {
+class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
 
     companion object {
         fun start(context: Context) {
@@ -50,7 +51,7 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>(), LogoutDialog.Lo
         }
     }
 
-    override fun onLogout() {
+    fun onLogout() {
         AuthUI.getInstance()
                 .signOut(this)
                 .addOnCompleteListener {
@@ -60,8 +61,12 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>(), LogoutDialog.Lo
     }
 
     private fun showLogoutDialog() {
-        supportFragmentManager.findFragmentByTag(LogoutDialog.TAG)
-                ?: LogoutDialog.createInstance().show(supportFragmentManager, LogoutDialog.TAG)
+        alert {
+            titleResource = R.string.logout_dialog_title
+            messageResource = R.string.logout_dialog_message
+            positiveButton(R.string.logout_dialog_ok) { onLogout() }
+            negativeButton(R.string.logout_dialog_cancel) { dialog -> dialog.dismiss() }
+        }.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean =
