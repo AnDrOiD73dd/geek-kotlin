@@ -1,9 +1,9 @@
 package ru.geekbrains.geekkotlin
 
-import android.support.multidex.MultiDexApplication
+import android.app.Application
 import com.github.ajalt.timberkt.Timber
 
-class App : MultiDexApplication() {
+class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
