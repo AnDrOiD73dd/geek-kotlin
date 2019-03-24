@@ -51,22 +51,22 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
         }
     }
 
-    fun onLogout() {
+    private fun showLogoutDialog() {
+        alert {
+            titleResource = R.string.logout_dialog_title
+            messageResource = R.string.logout_dialog_message
+            positiveButton(R.string.logout_dialog_ok) { onLogoutConfirmed() }
+            negativeButton(R.string.logout_dialog_cancel) { dialog -> dialog.dismiss() }
+        }.show()
+    }
+
+    private fun onLogoutConfirmed() {
         AuthUI.getInstance()
                 .signOut(this)
                 .addOnCompleteListener {
                     startActivity(Intent(this, SplashActivity::class.java))
                     finish()
                 }
-    }
-
-    private fun showLogoutDialog() {
-        alert {
-            titleResource = R.string.logout_dialog_title
-            messageResource = R.string.logout_dialog_message
-            positiveButton(R.string.logout_dialog_ok) { onLogout() }
-            negativeButton(R.string.logout_dialog_cancel) { dialog -> dialog.dismiss() }
-        }.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean =

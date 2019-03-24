@@ -2,11 +2,11 @@ package ru.geekbrains.geekkotlin.ui.note
 
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import kotlinx.android.synthetic.main.activity_note.*
+import org.jetbrains.anko.startActivity
 import ru.geekbrains.geekkotlin.R
 import ru.geekbrains.geekkotlin.common.format
 import ru.geekbrains.geekkotlin.common.getColorInt
@@ -22,11 +22,7 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
         private const val DATE_FORMAT = "dd.MM.yy HH:mm"
         private const val SAVE_DELAY = 500L
 
-        fun start(context: Context, noteId: String? = null) {
-            val intent = Intent(context, NoteActivity::class.java)
-            intent.putExtra(EXTRA_NOTE, noteId)
-            context.startActivity(intent)
-        }
+        fun start(context: Context, noteId: String? = null) = context.startActivity<NoteActivity>(EXTRA_NOTE to noteId)
     }
 
     private var note: Note? = null
