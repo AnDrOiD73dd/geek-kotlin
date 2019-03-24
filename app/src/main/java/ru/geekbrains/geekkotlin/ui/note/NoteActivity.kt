@@ -1,12 +1,15 @@
 package ru.geekbrains.geekkotlin.ui.note
 
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Menu
+import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_note.*
+import org.jetbrains.anko.alert
 import org.jetbrains.anko.startActivity
+import org.koin.android.viewmodel.ext.android.viewModel
 import ru.geekbrains.geekkotlin.R
 import ru.geekbrains.geekkotlin.common.format
 import ru.geekbrains.geekkotlin.common.getColorInt
@@ -15,39 +18,30 @@ import ru.geekbrains.geekkotlin.ui.base.BaseActivity
 import timber.log.Timber
 import java.util.*
 
-class NoteActivity : BaseActivity<Note?, NoteViewState>() {
+class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
 
     companion object {
         private val EXTRA_NOTE = NoteActivity::class.java.name + "extra.NOTE"
         private const val DATE_FORMAT = "dd.MM.yy HH:mm"
-        private const val SAVE_DELAY = 500L
 
         fun start(context: Context, noteId: String? = null) = context.startActivity<NoteActivity>(EXTRA_NOTE to noteId)
     }
 
-    private var note: Note? = null
     override val layoutRes = R.layout.activity_note
-    override val viewModel: NoteViewModel by lazy { ViewModelProviders.of(this).get(NoteViewModel::class.java) }
+    override val model: NoteViewModel by viewModel()
 
-    val textChangeWatcher = object : TextWatcher {
-        private var timer = Timer()
+    private var color = Note.Color.WHITE
+    private var note: Note? = null
+
+    private val textChangeWatcher = object : TextWatcher {
 
         override fun afterTextChanged(s: Editable?) {
-            timer.cancel()
-            timer = Timer()
-            timer.schedule(object : TimerTask() {
-                override fun run() {
-                    saveNote()
-                }
-            }, SAVE_DELAY)
             saveNote()
         }
 
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-        }
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-        }
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,31 +52,80 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
 
         val noteId = intent.getStringExtra(EXTRA_NOTE)
         noteId?.let {
-            viewModel.loadNote(it)
+            model.loadNote(it)
         } ?: let {
-            supportActionBar?.title = getString(R.string.new_note_title)
+            supportActionBar?.title = getString(R.string.note_title_new)
+            setEditListener()
         }
-        et_title.addTextChangedListener(textChangeWatcher)
-        et_body.addTextChangedListener(textChangeWatcher)
+
+        colorPicker.onColorClickListener = {
+            color = it
+            setToolbarColor(it)
+            saveNote()
+        }
     }
 
-    override fun renderData(data: Note?) {
-        this.note = data
-        supportActionBar?.title = if (this.note != null) {
-            this.note!!.lastChanged.format(DATE_FORMAT)
-        } else {
-            getString(R.string.new_note_title)
-        }
+    override fun onCreateOptionsMenu(menu: Menu?) = menuInflater.inflate(R.menu.note, menu).let { true }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> onBackPressed().let { true }
+            R.id.note_menu_palette -> togglePalette()
+            R.id.note_menu_delete -> deleteNote()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onBackPressed() {
+        if (colorPicker.isOpen) {
+            colorPicker.close()
+            return
+        }
+        super.onBackPressed()
+    }
+
+    private fun setToolbarColor(color: Note.Color) {
+        toolbar.setBackgroundColor(color.getColorInt(this@NoteActivity))
+        colorPicker.setBackgroundColor(color.getColorInt(this@NoteActivity))
+    }
+
+    private fun togglePalette() {
+        if (colorPicker.isOpen) {
+            colorPicker.close()
+        } else {
+            colorPicker.open()
+        }
+    }
+
+    private fun deleteNote() {
+        alert {
+            messageResource = R.string.note_delete_dialog_message
+            negativeButton(R.string.note_delete_dialog_cancel) { dialog -> dialog.dismiss() }
+            positiveButton(R.string.note_delete_dialog_ok) { model.deleteNote() }
+        }.show()
+    }
+
+    override fun renderData(data: NoteViewState.Data) {
+        if (data.isDeleted) finish()
+
+        this.note = data.note
+        data.note?.let { color = it.color }
         initView()
     }
 
     private fun initView() {
         note?.run {
             supportActionBar?.title = lastChanged.format(DATE_FORMAT)
-            et_title.setText(title)
-            et_body.setText(text)
-            toolbar.setBackgroundColor(color.getColorInt(this@NoteActivity))
+            removeEditListener()
+            if (et_title.text.toString() != title) {
+                et_title.setText(title)
+                et_title.text?.length?.let { et_title.setSelection(it) }
+            }
+            if (et_body.text.toString() != text) {
+                et_body.setText(text)
+                et_body.text?.length?.let { et_body.setSelection(it) }
+            }
+            setEditListener()
         }
     }
 
@@ -92,13 +135,24 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
         note = note?.copy(
                 title = et_title.text.toString(),
                 text = et_body.text.toString(),
-                lastChanged = Date()
+                lastChanged = Date(),
+                color = color
         ) ?: Note(
                 UUID.randomUUID().toString(),
                 et_title.text.toString(),
                 et_body.text.toString()
         )
 
-        note?.let { viewModel.save(note!!) }
+        note?.let { model.save(note!!) }
+    }
+
+    private fun setEditListener() {
+        et_title.addTextChangedListener(textChangeWatcher)
+        et_body.addTextChangedListener(textChangeWatcher)
+    }
+
+    private fun removeEditListener() {
+        et_title.removeTextChangedListener(textChangeWatcher)
+        et_body.removeTextChangedListener(textChangeWatcher)
     }
 }

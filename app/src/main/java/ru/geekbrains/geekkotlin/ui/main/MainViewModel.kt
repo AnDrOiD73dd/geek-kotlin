@@ -6,7 +6,7 @@ import ru.geekbrains.geekkotlin.data.entity.Note
 import ru.geekbrains.geekkotlin.model.NoteResult
 import ru.geekbrains.geekkotlin.ui.base.BaseViewModel
 
-class MainViewModel(private val repository: NotesRepository = NotesRepository) :
+class MainViewModel(private val repository: NotesRepository) :
         BaseViewModel<List<Note>?, MainViewState>() {
 
     private val notesObserver = Observer<NoteResult> { result ->
