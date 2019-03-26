@@ -3,13 +3,12 @@ package ru.geekbrains.geekkotlin.data
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.*
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
-import junit.framework.Assert.assertTrue
+import io.mockk.slot
+import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,4 +52,19 @@ class FireStoreProviderTest {
         }
         assertTrue(result is NoAuthException)
     }
+
+    @Test
+    fun `subscribeAllNotes return notes`() {
+        var result: List<Note>? = null
+        val slot = slot<EventListener<QuerySnapshot>>()
+        val mockSnapshot = mockk<QuerySnapshot>()
+
+        every { mockSnapshot.documents } returns listOf(mockDocument1, mockDocument2, mockDocument3)
+        every { mockCollection.addSnapshotListener(capture(slot)) } returns mockk()
+
+        provider.subscribeToAllNotes().observeForever { result = (it as? NoteResult.Success<List<Note>>)?.data }
+        slot.captured.onEvent(mockSnapshot, null)
+        assertEquals(testNotes, result)
+    }
+
 }
