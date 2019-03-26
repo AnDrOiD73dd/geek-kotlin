@@ -1,13 +1,11 @@
 package ru.geekbrains.geekkotlin.data
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
+import io.mockk.*
 import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -67,4 +65,36 @@ class FireStoreProviderTest {
         assertEquals(testNotes, result)
     }
 
+    @Test
+    fun `subscribeAllNotes return error`() {
+        var result: Throwable? = null
+        val slot = slot<EventListener<QuerySnapshot>>()
+        val testError = mockk<FirebaseFirestoreException>()
+        every { mockCollection.addSnapshotListener(capture(slot)) } returns mockk()
+        provider.subscribeToAllNotes().observeForever { result = (it as? NoteResult.Error)?.error }
+        slot.captured.onEvent(null, testError)
+        assertNotNull(result)
+        assertEquals(testError, result)
+    }
+
+    @Test
+    fun `saveNote call document set`() {
+        val mockDocumentReference: DocumentReference = mockk()
+        every { mockCollection.document(testNotes[0].id) } returns mockDocumentReference
+        provider.saveNote(testNotes[0])
+        verify(exactly = 1) { mockDocumentReference.set(testNotes[0]) }
+    }
+
+    @Test
+    fun `saveNote return Note`() {
+        val mockDocumentReference: DocumentReference = mockk()
+        val slot = slot<OnSuccessListener<in Void>>()
+        var result: Note? = null
+        every { mockCollection.document(testNotes[0].id) } returns mockDocumentReference
+        every { mockDocumentReference.set(testNotes[0]).addOnSuccessListener(capture(slot)) } returns mockk()
+        provider.saveNote(testNotes[0]).observeForever { result = (it as? NoteResult.Success<Note>)?.data }
+        slot.captured.onSuccess(null)
+        assertNotNull(result)
+        assertEquals(testNotes[0], result)
+    }
 }
