@@ -1,46 +1,43 @@
 package ru.geekbrains.geekkotlin.ui.main
 
-import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.item_note.view.*
+import kotlinx.android.extensions.LayoutContainer
+import kotlinx.android.synthetic.main.item_note.*
 import ru.geekbrains.geekkotlin.R
 import ru.geekbrains.geekkotlin.common.getColorInt
 import ru.geekbrains.geekkotlin.data.entity.Note
 
-class NotesRVAdapter(
-        private val presenter: NotesRVPresenterContract,
-        val onItemClick: ((Note) -> Unit)? = null) : RecyclerView.Adapter<NotesRVAdapter.ViewHolder>() {
+class NotesRVAdapter(val onItemClick: ((Note) -> Unit)? = null) : RecyclerView.Adapter<NotesRVAdapter.NoteViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    var notes: List<Note> = listOf()
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_note, parent, false)
-        return ViewHolder(view)
+        return NoteViewHolder(view)
     }
 
     override fun getItemCount(): Int {
-        return presenter.getItemCount()
+        return notes.size
     }
 
-    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        presenter.bind(viewHolder, position)
+    override fun onBindViewHolder(viewHolder: NoteViewHolder, position: Int) {
+        viewHolder.bind(notes[position])
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), NotesRVView {
-        override fun setTitle(title: String) {
-            with(itemView) { tv_title.text = title }
-        }
+    inner class NoteViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
-        override fun setNoteText(text: String) {
-            with(itemView) { tv_text.text = text }
-        }
+        fun bind(note: Note) = with(note) {
+            tv_title.text = title
+            tv_text.text = text
 
-        override fun setBackgroundColor(color: Note.Color) {
-            itemView.setBackgroundColor(color.getColorInt(itemView.context))
-        }
-
-        override fun setOnClickListener(note: Note) {
+            itemView.setBackgroundColor(note.color.getColorInt(containerView.context))
             itemView.setOnClickListener {
                 onItemClick?.invoke(note)
             }

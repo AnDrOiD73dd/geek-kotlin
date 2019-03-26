@@ -6,11 +6,8 @@ import ru.geekbrains.geekkotlin.data.entity.Note
 import ru.geekbrains.geekkotlin.model.NoteResult
 import ru.geekbrains.geekkotlin.ui.base.BaseViewModel
 
-class MainViewModel(private val repository: NotesRepository = NotesRepository) :
+class MainViewModel(private val repository: NotesRepository) :
         BaseViewModel<List<Note>?, MainViewState>() {
-
-    val presenter: NotesRVPresenterContract = NotesRVPresenter()
-        get() = field
 
     private val notesObserver = Observer<NoteResult> { result ->
         result ?: let { return@Observer }
@@ -34,26 +31,5 @@ class MainViewModel(private val repository: NotesRepository = NotesRepository) :
 
     override fun onCleared() {
         repositoryNotes.removeObserver(notesObserver)
-    }
-
-    inner class NotesRVPresenter : NotesRVPresenterContract {
-
-        private var notes: List<Note> = listOf()
-
-        override fun getItemCount(): Int {
-            return notes.size
-        }
-
-        override fun bind(view: NotesRVView, position: Int) {
-            val note = notes[position]
-            view.setTitle(note.title)
-            view.setNoteText(note.text)
-            view.setBackgroundColor(note.color)
-            view.setOnClickListener(note)
-        }
-
-        override fun updateNotesList(notes: List<Note>) {
-            this.notes = notes
-        }
     }
 }

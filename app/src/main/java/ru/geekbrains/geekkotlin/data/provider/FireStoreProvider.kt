@@ -10,19 +10,15 @@ import ru.geekbrains.geekkotlin.data.entity.User
 import ru.geekbrains.geekkotlin.data.errors.NoAuthException
 import ru.geekbrains.geekkotlin.model.NoteResult
 
-class FireStoreProvider : RemoteDataProvider {
+class FireStoreProvider(private val firebaseAuth: FirebaseAuth, private val store: FirebaseFirestore) : RemoteDataProvider {
 
     companion object {
         private const val NOTES_COLLECTION = "notes"
         private const val USERS_COLLECTION = "users"
     }
 
-    private val store by lazy { FirebaseFirestore.getInstance() }
-
-    private val notesReference by lazy { store.collection(NOTES_COLLECTION) }
-
     private val currentUser
-        get() = FirebaseAuth.getInstance().currentUser
+        get() = firebaseAuth.currentUser
 
     override fun getCurrentUser(): LiveData<User?> = MutableLiveData<User?>().apply {
         value = currentUser?.let { User(it.displayName ?: "", it.email ?: "") }
@@ -76,5 +72,19 @@ class FireStoreProvider : RemoteDataProvider {
             value = NoteResult.Error(e)
         }
     }
+
+    override fun deleteNote(noteId: String): LiveData<NoteResult> = MutableLiveData<NoteResult>().apply {
+        getUserNotesCollection().document(noteId).delete()
+                .addOnSuccessListener {
+                    value = NoteResult.Success(null)
+                }
+                .addOnCompleteListener {
+                    value = NoteResult.Success(null)
+                }
+                .addOnFailureListener {
+                    value = NoteResult.Error(it)
+                }
+    }
+
 
 }
