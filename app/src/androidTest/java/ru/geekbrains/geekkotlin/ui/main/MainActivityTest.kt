@@ -25,6 +25,7 @@ import org.koin.standalone.StandAloneContext.stopKoin
 import ru.geekbrains.geekkotlin.R
 import ru.geekbrains.geekkotlin.data.entity.Note
 import ru.geekbrains.geekkotlin.ui.note.NoteActivity
+import ru.geekbrains.geekkotlin.ui.note.NoteViewModel
 
 class MainActivityTest {
 
@@ -46,7 +47,7 @@ class MainActivityTest {
                 listOf(
                         module {
                             viewModel { model }
-                            viewModel { mockk<MainViewModel>(relaxed = true) }
+                            viewModel { mockk<NoteViewModel>(relaxed = true) }
                         }
                 )
         )
