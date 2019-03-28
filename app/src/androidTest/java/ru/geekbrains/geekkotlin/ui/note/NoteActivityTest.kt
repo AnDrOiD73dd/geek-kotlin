@@ -95,6 +95,7 @@ class NoteActivityTest {
 
     @Test
     fun should_call_save_note() {
+        activityTestRule.launchActivity(null)
         onView(withId(R.id.et_title)).perform(typeText(testNote.title))
         verify(timeout = 1000) { model.save(any()) }
     }
