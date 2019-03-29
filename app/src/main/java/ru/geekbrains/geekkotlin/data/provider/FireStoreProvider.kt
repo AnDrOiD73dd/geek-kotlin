@@ -62,7 +62,7 @@ class FireStoreProvider(private val firebaseAuth: FirebaseAuth, private val stor
     override fun subscribeToAllNotes() = MutableLiveData<NoteResult>().apply {
         try {
             getUserNotesCollection().addSnapshotListener { snapshot, e ->
-                value = e?.let { throw it }
+                value = e?.let { NoteResult.Error(e) }
                         ?: snapshot?.let {
                             val notes = it.documents.map { it.toObject(Note::class.java) }
                             NoteResult.Success(notes)
