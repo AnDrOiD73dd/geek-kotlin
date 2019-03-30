@@ -1,37 +1,57 @@
 package ru.geekbrains.geekkotlin.ui.base
 
 import android.app.Activity
-import android.arch.lifecycle.Observer
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.consumeEach
 import ru.geekbrains.geekkotlin.R
 import ru.geekbrains.geekkotlin.data.errors.NoAuthException
 import timber.log.Timber
+import kotlin.coroutines.CoroutineContext
 
-abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
+abstract class BaseActivity<S> : AppCompatActivity(), CoroutineScope {
 
     companion object {
         private const val REQUEST_CODE_LOGIN = 1001
     }
 
-    abstract val model: BaseViewModel<T, S>
+    override val coroutineContext: CoroutineContext by lazy { Dispatchers.Main + Job() }
+
+    abstract val model: BaseViewModel<S>
     abstract val layoutRes: Int?
+
+    private lateinit var dataJob: Job
+    private lateinit var errorJob: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         layoutRes?.let { setContentView(it) }
-        model.getViewState().observe(this, Observer<S> { viewState ->
-            viewState?.apply {
-                data?.let { renderData(it) }
-                error?.let { renderError(it) }
-            }
-        })
     }
 
-    abstract fun renderData(data: T)
+    override fun onStart() {
+        super.onStart()
+        dataJob = launch {
+            model.getViewState().consumeEach { renderData(it) }
+        }
+        errorJob = launch { model.getErrorChannel().consumeEach { renderError(it) } }
+    }
+
+    override fun onStop() {
+        dataJob.cancel()
+        errorJob.cancel()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        coroutineContext.cancel()
+        super.onDestroy()
+    }
+
+    abstract fun renderData(data: S)
 
     protected fun renderError(error: Throwable) {
         Timber.e(error)

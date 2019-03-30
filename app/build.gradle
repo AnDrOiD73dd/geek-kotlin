@@ -57,6 +57,9 @@ dependencies {
     implementation 'org.koin:koin-android:1.0.1'
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    // Kotlin Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.1'
     // Lifecycle
     implementation "android.arch.lifecycle:extensions:1.1.1"
     // Timber

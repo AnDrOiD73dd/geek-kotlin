@@ -5,7 +5,7 @@ import org.koin.android.viewmodel.ext.android.viewModel
 import ru.geekbrains.geekkotlin.ui.base.BaseActivity
 import ru.geekbrains.geekkotlin.ui.main.MainActivity
 
-class SplashActivity : BaseActivity<Boolean?, SplashViewState>() {
+class SplashActivity : BaseActivity<Boolean?>() {
     companion object {
         private const val START_DELAY = 1000L
     }

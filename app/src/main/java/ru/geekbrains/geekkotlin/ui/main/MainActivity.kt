@@ -18,7 +18,7 @@ import ru.geekbrains.geekkotlin.ui.base.BaseActivity
 import ru.geekbrains.geekkotlin.ui.note.NoteActivity
 import ru.geekbrains.geekkotlin.ui.splash.SplashActivity
 
-class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
+class MainActivity : BaseActivity<List<Note>?>() {
 
     companion object {
         fun start(context: Context) = context.startActivity<MainActivity>()

@@ -5,9 +5,9 @@ import ru.geekbrains.geekkotlin.data.provider.RemoteDataProvider
 
 class NotesRepository(val remoteDataProvider: RemoteDataProvider) {
 
-    fun getCurrentUser() = remoteDataProvider.getCurrentUser()
-    fun saveNote(note: Note) = remoteDataProvider.saveNote(note)
-    fun deleteNote(noteId: String) = remoteDataProvider.deleteNote(noteId)
-    fun getNoteById(id: String) = remoteDataProvider.getNoteById(id)
+    suspend fun getCurrentUser() = remoteDataProvider.getCurrentUser()
+    suspend fun saveNote(note: Note) = remoteDataProvider.saveNote(note)
+    suspend fun deleteNote(noteId: String) = remoteDataProvider.deleteNote(noteId)
+    suspend fun getNoteById(id: String) = remoteDataProvider.getNoteById(id)
     fun getNotes() = remoteDataProvider.subscribeToAllNotes()
 }
