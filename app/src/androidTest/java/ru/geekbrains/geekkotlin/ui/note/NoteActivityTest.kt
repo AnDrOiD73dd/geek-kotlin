@@ -1,6 +1,5 @@
 package ru.geekbrains.geekkotlin.ui.note
 
-import android.arch.lifecycle.MutableLiveData
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.support.test.espresso.Espresso.onView
@@ -12,6 +11,9 @@ import android.support.test.espresso.matcher.ViewMatchers.*
 import android.support.test.rule.ActivityTestRule
 import io.mockk.*
 import junit.framework.Assert.assertTrue
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.not
 import org.junit.After
@@ -32,13 +34,13 @@ class NoteActivityTest {
     @get:Rule
     val activityTestRule = ActivityTestRule(NoteActivity::class.java, true, false)
     private val model: NoteViewModel = spyk(NoteViewModel(mockk()))
-    private val viewStateLiveData = MutableLiveData<NoteViewState>()
+    private val viewStateChannel = BroadcastChannel<NoteData>(Channel.CONFLATED)
     private val testNote = Note("fach432", "test note", "test body")
 
     @Before
     fun setUp() {
         loadKoinModules(listOf(module { viewModel { model } }))
-        every { model.getViewState() } returns viewStateLiveData
+        every { model.getViewState() } returns viewStateChannel.openSubscription()
         every { model.loadNote(any()) } just runs
         every { model.save(any()) } just runs
         every { model.deleteNote() } just runs
@@ -87,7 +89,9 @@ class NoteActivityTest {
     @Test
     fun should_show_note() {
         activityTestRule.launchActivity(null)
-        viewStateLiveData.postValue(NoteViewState(NoteViewState.Data(note = testNote)))
+        runBlocking {
+            viewStateChannel.send(NoteData(note = testNote))
+        }
 
         onView(withId(R.id.et_title)).check(matches(withText(testNote.title)))
         onView(withId(R.id.et_body)).check(matches(withText(testNote.text)))
