@@ -7,6 +7,9 @@ import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_note.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.startActivity
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -18,11 +21,12 @@ import ru.geekbrains.geekkotlin.ui.base.BaseActivity
 import timber.log.Timber
 import java.util.*
 
-class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
+class NoteActivity : BaseActivity<NoteData>() {
 
     companion object {
         private val EXTRA_NOTE = NoteActivity::class.java.name + "extra.NOTE"
         private const val DATE_FORMAT = "dd.MM.yy HH:mm"
+        private const val SAVE_DELAY = 500L
 
         fun start(context: Context, noteId: String? = null) = context.startActivity<NoteActivity>(EXTRA_NOTE to noteId)
     }
@@ -34,13 +38,17 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
     private var note: Note? = null
 
     private val textChangeWatcher = object : TextWatcher {
+        var job: Job? = null
 
         override fun afterTextChanged(s: Editable?) {
-            saveNote()
+            if (job?.isCancelled == false) job?.cancel()
+            job = launch {
+                delay(SAVE_DELAY)
+                saveNote()
+            }
         }
 
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
     }
 
@@ -105,7 +113,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         }.show()
     }
 
-    override fun renderData(data: NoteViewState.Data) {
+    override fun renderData(data: NoteData) {
         if (data.isDeleted) finish()
 
         this.note = data.note
@@ -117,13 +125,13 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         note?.run {
             supportActionBar?.title = lastChanged.format(DATE_FORMAT)
             removeEditListener()
-            if (et_title.text.toString() != title) {
-                et_title.setText(title)
-                et_title.text?.length?.let { et_title.setSelection(it) }
+            et_title.setText(title)
+            et_body.setText(text)
+            et_title.text?.let {
+                et_title.setSelection(it.length)
             }
-            if (et_body.text.toString() != text) {
-                et_body.setText(text)
-                et_body.text?.length?.let { et_body.setSelection(it) }
+            et_body.text?.let {
+                et_body.setSelection(it.length)
             }
             setEditListener()
         }

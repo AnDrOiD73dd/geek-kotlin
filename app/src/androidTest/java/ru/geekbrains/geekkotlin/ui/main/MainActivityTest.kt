@@ -1,6 +1,5 @@
 package ru.geekbrains.geekkotlin.ui.main
 
-import android.arch.lifecycle.MutableLiveData
 import android.support.test.espresso.Espresso.onView
 import android.support.test.espresso.action.ViewActions.click
 import android.support.test.espresso.assertion.ViewAssertions.matches
@@ -13,6 +12,9 @@ import android.support.test.espresso.intent.rule.IntentsTestRule
 import android.support.test.espresso.matcher.ViewMatchers.*
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.Matchers.allOf
 import org.junit.After
 import org.junit.Before
@@ -34,7 +36,7 @@ class MainActivityTest {
 
     private val EXTRA_NOTE = NoteActivity::class.java.name + "extra.NOTE"
     private val model: MainViewModel = mockk(relaxed = true)
-    private val viewStateLiveData = MutableLiveData<MainViewState>()
+    private val viewStateChannel = BroadcastChannel<List<Note>?>(Channel.CONFLATED)
     private val testNotes = listOf(
             Note("afafaf", "first title", "first body"),
             Note("bfbfbf", "second title", "second body"),
@@ -51,14 +53,17 @@ class MainActivityTest {
                         }
                 )
         )
-        every { model.getViewState() } returns viewStateLiveData
+        every { model.getViewState() } returns viewStateChannel.openSubscription()
         activityTestRule.launchActivity(null)
-        viewStateLiveData.postValue(MainViewState(notes = testNotes))
+        runBlocking {
+            viewStateChannel.send(testNotes)
+        }
     }
 
     @After
     fun tearDown() {
         stopKoin()
+        viewStateChannel.close()
     }
 
     @Test
